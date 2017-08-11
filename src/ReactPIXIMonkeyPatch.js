@@ -24,24 +24,23 @@
 
 "use strict";
 
-import ReactCompositeComponent from 'react-dom/lib/ReactCompositeComponent';
-import ReactReconciler from 'react-dom/lib/ReactReconciler';
+import ReactCompositeComponent from "react-dom/lib/ReactCompositeComponent";
+import ReactReconciler from "react-dom/lib/ReactReconciler";
 
-import shouldUpdateReactComponent from 'react-dom/lib/shouldUpdateReactComponent';
-import warning from 'fbjs/lib/warning';
+import shouldUpdateReactComponent from "react-dom/lib/shouldUpdateReactComponent";
+import warning from "fbjs/lib/warning";
 
 //
 // Composite components don't have a displayObject. So we have to do some work to find
 // the proper displayObject sometimes.
 //
 
-
 function findDisplayObjectChild(componentinstance) {
   // walk downwards via _renderedComponent to find something with a displayObject
   var componentwalker = componentinstance;
-  while (typeof componentwalker !== 'undefined') {
+  while (typeof componentwalker !== "undefined") {
     // no displayObject? then fail
-    if (typeof componentwalker._displayObject !== 'undefined') {
+    if (typeof componentwalker._displayObject !== "undefined") {
       return componentwalker._displayObject;
     }
     componentwalker = componentwalker._renderedComponent;
@@ -49,14 +48,14 @@ function findDisplayObjectChild(componentinstance) {
 
   // we walked all the way down and found no displayObject
   return undefined;
-
 }
 
 //
 // This modified version of updateRenderedComponent will
 // manage displayObject nodes instead of HTML markup
 //
-let old_updateRenderedComponent = ReactCompositeComponent._updateRenderedComponent;
+let old_updateRenderedComponent =
+  ReactCompositeComponent._updateRenderedComponent;
 
 let ReactPIXI_updateRenderedComponent = function(transaction, context) {
   var prevComponentInstance = this._renderedComponent;
@@ -69,7 +68,7 @@ let ReactPIXI_updateRenderedComponent = function(transaction, context) {
   let prevDisplayObject = findDisplayObjectChild(prevComponentInstance);
   if (!prevDisplayObject) {
     // not a PIXI node, use the original DOM-style version
-    old_updateRenderedComponent.call(this,transaction, context);
+    old_updateRenderedComponent.call(this, transaction, context);
     return;
   }
 
@@ -94,14 +93,17 @@ let ReactPIXI_updateRenderedComponent = function(transaction, context) {
 
     // unmounting doesn't disconnect the child from the parent node,
     // but later on we'll simply overwrite the proper element in the 'children' data member
-    let displayObjectIndex = displayObjectParent.children.indexOf(prevDisplayObject);
+    let displayObjectIndex = displayObjectParent.children.indexOf(
+      prevDisplayObject
+    );
     ReactReconciler.unmountComponent(prevComponentInstance);
     displayObjectParent.removeChild(prevDisplayObject);
 
     // create the new object and stuff it into the place vacated by the old object
     this._renderedComponent = this._instantiateReactComponent(
       nextRenderedElement,
-      this._currentElement.type);
+      this._currentElement.type
+    );
     let nextDisplayObject = ReactReconciler.mountComponent(
       this._renderedComponent,
       transaction,
@@ -127,28 +129,38 @@ let ReactPIXI_updateRenderedComponent = function(transaction, context) {
 
 let buildPatchedReceiveComponent = function(oldReceiveComponent) {
   let newReceiveComponent = function(
-        internalInstance, nextElement, transaction, context
+    internalInstance,
+    nextElement,
+    transaction,
+    context
   ) {
     // if the instance is a ReactCompositeComponentWrapper, fix it if needed
     let ComponentPrototype = Object.getPrototypeOf(internalInstance);
 
     // if this is a composite component it wil have _updateRenderedComponent defined
-    if (typeof ComponentPrototype._updateRenderedComponent !== 'undefined') {
+    if (typeof ComponentPrototype._updateRenderedComponent !== "undefined") {
       // check first to make sure we don't patch it twice
-      if (ComponentPrototype._updateRenderedComponent !== ReactPIXI_updateRenderedComponent) {
-	ComponentPrototype._updateRenderedComponent = ReactPIXI_updateRenderedComponent;
+      if (
+        ComponentPrototype._updateRenderedComponent !==
+        ReactPIXI_updateRenderedComponent
+      ) {
+        ComponentPrototype._updateRenderedComponent = ReactPIXI_updateRenderedComponent;
       }
     }
 
-    oldReceiveComponent.call(this,internalInstance, nextElement, transaction, context);
+    oldReceiveComponent.call(
+      this,
+      internalInstance,
+      nextElement,
+      transaction,
+      context
+    );
   };
 
   return newReceiveComponent;
 };
 
-
 let ReactPIXIMonkeyPatch = function() {
-
   // in older versions we patched ReactCompositeComponentMixin, but in 0.13 the
   // prototype is wrapped in a ReactCompositeComponentWrapper so monkey-patching
   // ReactCompositeComponentMixin won't actually have any effect.
@@ -164,10 +176,15 @@ let ReactPIXIMonkeyPatch = function() {
   let old_ReactReconciler_receiveComponent = ReactReconciler.receiveComponent;
 
   // check to see if we already patched it, so we don't patch again
-  if (typeof old_ReactReconciler_receiveComponent._ReactPIXIPatched === 'undefined') {
-    warning(false,"patching react to work with react-pixi");
+  if (
+    typeof old_ReactReconciler_receiveComponent._ReactPIXIPatched ===
+    "undefined"
+  ) {
+    warning(false, "patching react to work with react-pixi");
 
-    ReactReconciler.receiveComponent = buildPatchedReceiveComponent(old_ReactReconciler_receiveComponent);
+    ReactReconciler.receiveComponent = buildPatchedReceiveComponent(
+      old_ReactReconciler_receiveComponent
+    );
     ReactReconciler.receiveComponent._ReactPIXIPatched = true;
   }
 };

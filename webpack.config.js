@@ -1,4 +1,4 @@
-var path = require('path');
+var path = require("path");
 
 module.exports = {
   entry: path.join(__dirname, "src", "react-pixi-exposeglobals.js"),
@@ -8,11 +8,11 @@ module.exports = {
     publicPath: "/build/",
     filename: "react-pixi.js",
     libraryTarget: "var",
-    library:"ReactPIXI"
+    library: "ReactPIXI"
   },
-
+  devtool: '#inline-source-map',
   module: {
-    postLoaders:[
+    postLoaders: [
       {
         test: /\.js$/,
         loader: "transform/cacheable?brfs"
@@ -20,28 +20,28 @@ module.exports = {
     ],
     loaders: [
       {
-	test: /\.js$/,
-	loader: 'babel',
-	include: path.join(__dirname, 'src'),
-	query: {
+        test: /\.js$/,
+        loader: "babel",
+        include: path.join(__dirname, "src"),
+        query: {
           cacheDirectory: true,
-          presets: ['es2015', 'stage-2'],
-          plugins: ['transform-runtime']
-	}
+          presets: ["es2015", "stage-2"],
+          plugins: ["transform-runtime"]
+        }
       },
       {
         test: /\.json$/,
-        loader: 'json-loader'
+        loader: "json-loader"
       },
       // this is here to apply browserify transforms (specifically glslify) to pixi 4
       {
         test: /node_modules/,
-        loader: 'ify'
+        loader: "ify"
       }
     ]
   },
 
   node: {
-    fs: 'empty'
+    fs: "empty"
   }
-}
+};

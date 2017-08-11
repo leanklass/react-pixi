@@ -112,7 +112,7 @@ Look in the examples directory for more in-depth examples.
 You can produce display elements using JSX as well. Note that you don't need
 factories in this case.
 
-```js
+```html
 var assetpath = function(filename) { return '../assets/' + filename; };
 
 var Stage = ReactPIXI.Stage;
